@@ -19,16 +19,21 @@ class GradesParser:
 
         # Filter the DataFrame to include only the specified columns
         df_filtered = df_filtered[['ID'] + self.needed_columns]
+        
+        # Move the last column to the first position
+        cols = df_filtered.columns.tolist()
+        cols = [cols[-1]] + cols[:-1]
+        df_reordered = df_filtered[cols]
 
         # Check if the output file already exists
         if os.path.exists(self.output_file) is False:
-            df_filtered.to_csv(self.output_file, index=False)
+            df_reordered[::-1].to_csv(self.output_file, index=False, sep=' ', header=False)
             print(f"Data has been written to {self.output_file}")
             return
 
         user_input = input(f"The file {self.output_file} already exists. Do you want to overwrite it? [y/n]: ")
         if user_input.lower() == 'y':
-            df_filtered.to_csv(self.output_file, index=False)
+            df_reordered[::-1].to_csv(self.output_file, index=False, sep=' ', header=False)
             print(f"Data has been written to {self.output_file}")
         else:
             print("The file will not be overwritten.")
@@ -38,7 +43,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process Students IDs and get Grades from previous semesters Excel file.')
     parser.add_argument('--ids', type=str, help='Path to the file containing students IDs, where each row contains exactly a single ID')
     parser.add_argument('--gr_file', type=str, help='Path to the Excel file - created by GR - that contains the students data')
-    parser.add_argument('--output_file', type=str, default='filtered.csv', help='Path to the output file')
+    parser.add_argument('--output_file', type=str, default='filtered.txt', help='Path to the output file')
     parser.add_argument('--columns', type=str, nargs='+', default=['HOMEWORK_TOTAL'], help='Columns to include in the output')
 
     args = parser.parse_args()
