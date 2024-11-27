@@ -19,21 +19,19 @@ class GradesParser:
 
         # Filter the DataFrame to include only the specified columns
         df_filtered = df_filtered[['ID'] + self.needed_columns]
-        
-        # Move the last column to the first position
-        cols = df_filtered.columns.tolist()
-        cols = [cols[-1]] + cols[:-1]
-        df_reordered = df_filtered[cols]
+
+        # Fill non-finite values with a default integer value, e.g., 0
+        df_filtered[self.needed_columns] = df_filtered[self.needed_columns].fillna(0).astype(int)
 
         # Check if the output file already exists
         if os.path.exists(self.output_file) is False:
-            df_reordered[::-1].to_csv(self.output_file, index=False, sep=' ', header=False)
+            df_filtered[::-1].to_csv(self.output_file, index=False, sep=' ', header=False)
             print(f"Data has been written to {self.output_file}")
             return
 
         user_input = input(f"The file {self.output_file} already exists. Do you want to overwrite it? [y/n]: ")
         if user_input.lower() == 'y':
-            df_reordered[::-1].to_csv(self.output_file, index=False, sep=' ', header=False)
+            df_filtered[::-1].to_csv(self.output_file, index=False, sep=' ', header=False)
             print(f"Data has been written to {self.output_file}")
         else:
             print("The file will not be overwritten.")
