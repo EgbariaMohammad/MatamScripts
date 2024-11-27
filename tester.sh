@@ -4,43 +4,44 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 show_help() {
-    echo "Usage: $0 -e <executable> -i <input_dir> -o <expected_output_dir>"
+    echo "Usage: $0 -e <executable> -i <input_dir> -o <expected_dir>"
+    echo ""
+    echo "This script runs an executable on each input file (.in) in the input directory, compares the output with the expected file (.expected), and checks for memory leaks. Ensure each input file has a corresponding expected output file with the same name and a (.expected) extension."
+    echo "The script also supports pretest and posttest scripts, such as a shell script to compile the executable. Simply provide a script with the same name as the executable, ending in _pre.sh for pretest and _post.sh for posttest."
+
+    echo ""
+    echo -n
     echo "Options:"
     echo "  -h                Show this help message"
     echo "Arguments:"
     echo "  -e <executable>   The executable to run the tests on"
     echo "  -i <input_dir>    The directory containing the test input files"
-    echo "  -o <expected_output_dir> The directory containing the expected output files"
+    echo "  -o <expected_dir> The directory containing the expected output files"
+}
+
+run_test() {
+    local test_type=$2
+    local test_script="${1%.*}_${test_type}.sh"
+    
+    if [ -f "$test_script" ]; then
+        echo -n "Running ${test_type}: "
+        ./"$test_script"
+        
+        if [ $? -eq 0 ]; then
+            printf "${GREEN}done${NC}\n"
+        else
+            printf "${RED}error${NC}\n"
+            exit 1
+        fi
+    fi
 }
 
 run_pretest() {
-    if [ -f ${1%.*}_pre.sh ]
-    then
-        echo -n "Running pretest: "
-        ./${1%.*}_pre.sh
-        if [ $? -eq 0 ]
-        then
-            printf "${GREEN}done${NC}\n"
-        else
-            printf "${RED}error${NC}\n"
-            exit 1
-        fi
-    fi
+    run_test "$1" "pre"
 }
 
 run_posttest() {
-    if [ -f ${1%.*}_post.sh ]
-    then
-        echo -n "Running posttest: "
-        ./${1%.*}_post.sh
-        if [ $? -eq 0 ]
-        then
-            printf "${GREEN}done${NC}\n"
-        else
-            printf "${RED}error${NC}\n"
-            exit 1
-        fi
-    fi
+    run_test "$1" "post"
 }
 
 check_memory_leaks() {
